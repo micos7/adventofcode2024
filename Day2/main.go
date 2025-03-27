@@ -57,9 +57,10 @@ func main() {
 }
 
 func checkSequenceWithOneRemoval(numbers []int) bool {
-	for i := 0; i < len(numbers); i++ {
-		modified := append([]int{}, numbers[:i]...)
-		modified = append(modified, numbers[i+1:]...)
+	for i := range numbers {
+		modified := make([]int, len(numbers)-1)
+		copy(modified, numbers[:i])
+		copy(modified[i:], numbers[i+1:])
 
 		if len(modified) < 2 {
 			continue
