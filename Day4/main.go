@@ -50,10 +50,10 @@ func findWordCount(grid [][]rune, targetWord string) int {
 	dr := []int{-1, -1, -1, 0, 0, 1, 1, 1}
 	dc := []int{-1, 0, 1, -1, 1, -1, 0, 1}
 
-	for r := 0; r < numRows; r++ {
-		for c := 0; c < len(grid[r]); c++ {
+	for r := range grid {
+		for c := range grid[r] {
 			if grid[r][c] == targetRunes[0] {
-				for d := 0; d < 8; d++ {
+				for d := range 8 {
 					currentDr, currentDc := dr[d], dc[d]
 					foundWordInDirection := true
 					for k := 1; k < len(targetRunes); k++ {
