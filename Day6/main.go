@@ -7,19 +7,17 @@ import (
 	"os"
 )
 
-// Point represents a coordinate on the grid
 type point struct {
 	r, c int
 }
 
-// State represents the guard's position and direction
 type state struct {
 	r, c int
 	dir  string
 }
 
 func main() {
-	inputFilename := "input.txt" // Make sure you have an input.txt file
+	inputFilename := "input.txt"
 	originalGrid, err := readGrid(inputFilename)
 	if err != nil {
 		log.Fatalf("Failed to read grid: %v", err)
@@ -28,7 +26,7 @@ func main() {
 		fmt.Println("Input grid is empty or could not be read.")
 		return
 	}
-	// Basic check for rows, column check happens where grid is used
+
 	if len(originalGrid[0]) == 0 {
 		fmt.Println("Input grid has zero columns.")
 		return
@@ -39,16 +37,14 @@ func main() {
 
 	loopCausingCount := 0
 	rows := len(originalGrid)
-	// Assume rectangular grid based on original code's intent and first row
-	// If grid can be jagged, logic inside simulation needs careful bounds checking per row
+
 	cols := len(originalGrid[0])
 
 	fmt.Println("\nTesting potential obstacle placements...")
 
-	// Create a mutable copy for modifications
 	grid := make([][]rune, rows)
 	for r := range originalGrid {
-		grid[r] = make([]rune, cols) // Assuming rectangular based on previous lines
+		grid[r] = make([]rune, cols)
 		copy(grid[r], originalGrid[r])
 	}
 
@@ -58,33 +54,24 @@ func main() {
 		return
 	}
 	visitedCells := 0
-	for r := 0; r < rows; r++ {
-		// Ensure column iteration respects actual row length if potentially jagged
-		// but for this loop, we use the 'cols' derived earlier based on assumption
-		for c := 0; c < cols; c++ {
-			// Check bounds just in case grid WAS jagged despite earlier assumption
+	for r := range rows {
+
+		for c := range cols {
+
 			if c >= len(grid[r]) {
-				continue // Skip if this column doesn't exist for this row
+				continue
 			}
 
 			originalChar := grid[r][c]
 
-			// Check if this is a valid spot for a new obstacle:
-			// Not the start position and not already an obstacle.
 			isStartPos := (r == startR && c == startC)
-			// Allow placing obstacles on empty paths (e.g., '.')
-			// Add other non-obstacle characters here if needed (e.g., ' ')
 			isValidPlacement := !isStartPos && originalChar != '#' && originalChar == '.'
 
 			if isValidPlacement {
-				// --- Modify ---
 				grid[r][c] = '#'
-				// fmt.Printf("Testing obstacle at (%d, %d)...\n", r, c) // Uncomment for verbose output
 
-				// --- Simulate ---
-				visitedPositions, loopDetected := simulateGuardPathWithLoopDetection(grid) // Pass the modified grid
+				visitedPositions, loopDetected := simulateGuardPathWithLoopDetection(grid)
 
-				// --- Check Result ---
 				if loopDetected {
 					loopCausingCount++
 					fmt.Printf("  -> Loop DETECTED by placing '#' at (%d, %d). Path length before/during loop: %d\n", r, c, len(visitedPositions))
@@ -93,8 +80,7 @@ func main() {
 				}
 				visitedCells = len(visitedPositions)
 
-				// --- Revert ---
-				grid[r][c] = originalChar // Put back the original character
+				grid[r][c] = originalChar
 			}
 		}
 	}
@@ -191,7 +177,7 @@ func simulateGuardPathWithLoopDetection(grid [][]rune) (map[point]bool, bool) {
 	rows := len(grid)
 	if rows > 0 && len(grid[0]) == 0 {
 		fmt.Println("Warning: Grid has rows but zero columns.")
-		return make(map[point]bool), false // Treat as unable to simulate
+		return make(map[point]bool), false
 	}
 
 	cols := 0
@@ -212,9 +198,9 @@ func simulateGuardPathWithLoopDetection(grid [][]rune) (map[point]bool, bool) {
 	visitedPositions := make(map[point]bool)
 	visitedStates := make(map[state]bool)
 
-	maxSteps := rows * cols * 4
+	maxSteps := rows * cols
 
-	for step := 0; step < maxSteps; step++ {
+	for step := range maxSteps {
 
 		if currentRow < 0 || currentRow >= rows || currentCol < 0 || currentCol >= len(grid[currentRow]) {
 			fmt.Printf("Warning: Guard out of bounds at step %d (%d, %d). Terminating.\n", step, currentRow, currentCol)
