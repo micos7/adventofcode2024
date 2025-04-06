@@ -57,7 +57,6 @@ func main() {
 		}
 
 	}
-
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Error reading file:", err)
 		return
