@@ -71,6 +71,61 @@ func countAntiNodes(input string) int64 {
 	return int64(output)
 }
 
+func countAntiNodesUpdated(input string) int64 {
+	lines := strings.Split(strings.TrimSpace(input), "\n")
+	grid := make([][]rune, len(lines))
+	for i, line := range lines {
+		grid[i] = []rune(line)
+	}
+
+	rows, cols := len(grid), len(grid[0])
+	antennas := make(map[rune][][2]int)
+	antiNodes := make(map[[2]int]bool)
+
+	for row := range grid {
+		for col := range grid[row] {
+			if grid[row][col] != '.' {
+				antennas[grid[row][col]] = append(antennas[grid[row][col]], [2]int{row, col})
+			}
+		}
+	}
+
+	for _, positions := range antennas {
+		if len(positions) < 2 {
+			continue
+		}
+
+		for r := 0; r < rows; r++ {
+			for c := 0; c < cols; c++ {
+				currentPos := [2]int{r, c}
+
+				if isCollinearWithAtLeastTwo(currentPos, positions) {
+					antiNodes[currentPos] = true
+				}
+			}
+		}
+	}
+
+	return int64(len(antiNodes))
+}
+
+func isCollinearWithAtLeastTwo(pos [2]int, antennas [][2]int) bool {
+	for i := 0; i < len(antennas); i++ {
+		for j := i + 1; j < len(antennas); j++ {
+
+			if areCollinear(antennas[i], antennas[j], pos) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func areCollinear(A, B, C [2]int) bool {
+	area := (B[0]-A[0])*(C[1]-A[1]) - (C[0]-A[0])*(B[1]-A[1])
+	return area == 0
+}
+
 func main() {
 	file, err := os.Open("input.txt")
 	if err != nil {
@@ -87,9 +142,13 @@ func main() {
 
 	input := string(content)
 
-	totalSumPart1 := int64(0)
+	totalAntiNodesPart1 := int64(0)
+	totalAntiNodesPart2 := int64(0)
 
-	totalSumPart1 = countAntiNodes(input)
+	totalAntiNodesPart1 = countAntiNodes(input)
 
-	fmt.Println("Total anti-node count:", totalSumPart1)
+	totalAntiNodesPart2 = countAntiNodesUpdated(input)
+
+	fmt.Println("Total anti-node count part 1:", totalAntiNodesPart1)
+	fmt.Println("Total anti-node count part 2:", totalAntiNodesPart2)
 }
