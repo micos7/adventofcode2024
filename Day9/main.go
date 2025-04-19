@@ -7,6 +7,17 @@ import (
 	"strings"
 )
 
+type SpaceSegment struct {
+	Start  int
+	Length int
+}
+
+type FileSegment struct {
+	ID     int
+	Start  int
+	Length int
+}
+
 func main() {
 	file, err := os.Open("input.txt")
 	if err != nil {
@@ -53,6 +64,11 @@ func main() {
 	l := 0
 	r := len(disk) - 1
 
+	// fmt.Println(disk)
+
+	diskCopy := make([]interface{}, len(disk))
+	copy(diskCopy, disk)
+
 	for l < r {
 		for l < len(disk) && disk[l] != "." {
 			l++
@@ -79,5 +95,103 @@ func main() {
 		}
 	}
 
+	maxFileID := fileCount - 1
+
+	for currentFileID := maxFileID; currentFileID >= 0; currentFileID-- {
+
+		fileStart, fileLength := findFileSegmentInterface(diskCopy, currentFileID)
+
+		if fileStart != -1 {
+
+			spaceStart, _ := findLeftmostSuitableSpaceInterface(diskCopy, fileLength, fileStart-1)
+
+			if spaceStart != -1 {
+
+				movedFileBlocks := make([]interface{}, fileLength)
+				for i := 0; i < fileLength; i++ {
+					movedFileBlocks[i] = diskCopy[fileStart+i]
+				}
+
+				for i := 0; i < fileLength; i++ {
+					diskCopy[fileStart+i] = "."
+				}
+
+				for i := 0; i < fileLength; i++ {
+					diskCopy[spaceStart+i] = movedFileBlocks[i]
+				}
+			}
+		}
+	}
+
+	checksumPart2 := 0
+	for position, blockValue := range diskCopy {
+		if fileID, ok := blockValue.(int); ok {
+			checksumPart2 += position * fileID
+		}
+	}
+
+	fmt.Println("Resulting checksum part 2:", checksumPart2)
+
 	fmt.Println("Total check count part 1:", checksum)
+}
+
+func findFileSegmentInterface(disk []interface{}, fileID int) (start int, length int) {
+	start = -1
+	length = 0
+
+	firstBlockIdx := -1
+	for i := 0; i < len(disk); i++ {
+		if val, ok := disk[i].(int); ok && val == fileID {
+			firstBlockIdx = i
+			break
+		}
+	}
+
+	if firstBlockIdx == -1 {
+		return -1, 0
+	}
+
+	start = firstBlockIdx
+	length = 0
+	for i := start; i < len(disk); i++ {
+		if val, ok := disk[i].(int); ok && val == fileID {
+			length++
+		} else {
+			break
+		}
+	}
+
+	return start, length
+}
+
+func findLeftmostSuitableSpaceInterface(disk []interface{}, minLength int, maxIndex int) (start int, length int) {
+	start = -1
+	length = 0
+
+	currentSpaceStart := -1
+	currentSpaceLength := 0
+	for i := 0; i <= maxIndex && i < len(disk); i++ {
+		if disk[i] == "." {
+			if currentSpaceStart == -1 {
+				currentSpaceStart = i
+				currentSpaceLength = 1
+			} else {
+				currentSpaceLength++
+			}
+		} else {
+			if currentSpaceStart != -1 {
+				if currentSpaceLength >= minLength {
+					return currentSpaceStart, currentSpaceLength
+				}
+				currentSpaceStart = -1
+				currentSpaceLength = 0
+			}
+		}
+	}
+
+	if currentSpaceStart != -1 && currentSpaceLength >= minLength {
+		return currentSpaceStart, currentSpaceLength
+	}
+
+	return -1, 0
 }
