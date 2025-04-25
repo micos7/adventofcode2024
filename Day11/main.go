@@ -35,9 +35,11 @@ func main() {
 		nums = append(nums, n)
 	}
 
-	final := transformRecursive(nums, 25)
+	part1 := transformRecursive(nums, 25)
+	part2 := getFinalCount(nums, 75)
 
-	fmt.Println(len(final))
+	fmt.Println(len(part1))
+	fmt.Println(part2)
 
 }
 
@@ -86,4 +88,32 @@ func splitIfEvenDigits(n int) (int, int, bool) {
 	}
 
 	return left, right, true
+}
+
+func getFinalCount(nums []int, steps int) int {
+	counts := make(map[int]int)
+
+	for _, n := range nums {
+		counts[n]++
+	}
+
+	for i := 0; i < steps; i++ {
+		nextCounts := make(map[int]int)
+
+		for n, c := range counts {
+			outputs := transformFn(n)
+			for _, out := range outputs {
+				nextCounts[out] += c
+			}
+		}
+
+		counts = nextCounts
+	}
+
+	// Sum the final counts
+	total := 0
+	for _, c := range counts {
+		total += c
+	}
+	return total
 }
